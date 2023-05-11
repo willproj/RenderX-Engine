@@ -1,13 +1,23 @@
 #include "include/main_gui.h"
+#include "include/properties_gui.h"
+#include "include/scene_gui.h"
+#include "include/viewport_gui.h"
+#include "include/environment_gui.h"
+
 #include "openglCore/include/window.h"
+#include "openglcore/include/texture.h"
+
+#include "utils/filesystem.h"
+#include "utils/serializer.h"
+
+#include <winuser.h>
 
 namespace engine::ui
 {
 	std::shared_ptr<MainGui> MainGui::s_instance;
-	bool MainGui::showViewportGui = false;
-	bool MainGui::showSceneGui = false;
-	bool MainGui::p_open = true;
-	bool MainGui::fullscreen = false;
+	
+	bool MainGui::isOpen = true;
+	bool MainGui::fullscreen = true;
 
 	uint32_t MainGui::offsetNavItemLeft = 0;
 	uint32_t MainGui::offsetNavItemRight = 0;
@@ -32,6 +42,8 @@ namespace engine::ui
 	MainGui::MainGui()
 		:uiName("RenderX")
 	{
+		
+		
 	}
 
 	MainGui::~MainGui()
@@ -39,9 +51,31 @@ namespace engine::ui
 
 	}
 
+	void MainGui::setRenderData(std::shared_ptr<scene::RenderData> renderData)
+	{
+		guiStack.front()->set(renderData);
+	}
+
 	bool MainGui::init()
 	{
 		uiSetup();
+
+		offsetNavItemLeft = 210;
+		offsetNavItemRight = 140;
+
+		switchIcon = 1;
+
+		guiStack.emplace_back(std::shared_ptr<SceneGui>(new SceneGui()));
+		guiStack.emplace_back(std::shared_ptr<ViewportGui>(new ViewportGui()));
+		guiStack.emplace_back(std::shared_ptr<PropertiesGui>(new PropertiesGui()));
+		guiStack.emplace_back(std::shared_ptr<EnvironmentGui>(new EnvironmentGui()));
+
+		minimizeIcon = openglcore::TextureUtils::loadTexture(utils::FileSystem::getRootPath() + "/assets/icon/minimize.png");
+		maximizeIcon = openglcore::TextureUtils::loadTexture(utils::FileSystem::getRootPath() + "/assets/icon/maximize.png");
+		closeIcon = openglcore::TextureUtils::loadTexture(utils::FileSystem::getRootPath() + "/assets/icon/close.png");
+		restoreIcon = openglcore::TextureUtils::loadTexture(utils::FileSystem::getRootPath() + "/assets/icon/restore.png");
+		logo = openglcore::TextureUtils::loadTexture(utils::FileSystem::getRootPath() + "/assets/icon/white_renderx.png");
+
 		return true;
 	}
 
@@ -85,14 +119,13 @@ namespace engine::ui
 
 	void MainGui::renderMainGui()
 	{
-		static bool opt_fullscreen = false;
-		static bool opt_padding = false;
+		//fullscreen = false;
 		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
 		// because it would be confusing to have two docking targets within each others.
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-		if (opt_fullscreen)
+		if (fullscreen)
 		{
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -105,7 +138,11 @@ namespace engine::ui
 		}
 		else
 		{
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
 
 		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
@@ -119,10 +156,9 @@ namespace engine::ui
 		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
 		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 10));
-		if (!opt_padding)
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-		ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+		ImGui::Begin("DockSpace Demo", &isOpen, window_flags);
 		mainUiPosX = ImGui::GetWindowPos().x;
 		mainUiPosY = ImGui::GetWindowPos().y;
 
@@ -130,11 +166,10 @@ namespace engine::ui
 		MainGui::mainUiHeight = ImGui::GetWindowSize().y;
 
 
-		if (!opt_padding)
-			ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
 
-		if (opt_fullscreen)
-			ImGui::PopStyleVar(2);
+		//if (opt_fullscreen)
+		ImGui::PopStyleVar(2);
 
 		// Submit the DockSpace
 		ImGuiIO& io = ImGui::GetIO();
@@ -144,68 +179,160 @@ namespace engine::ui
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
 
-
+		//render navbar
 		renderNavBar();
-		
-
 
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-
+		//render other guis
 		ImGui::ShowDemoWindow();
+
+		for (auto& gui : guiStack)
+		{
+			gui->render();
+		}
+		
 	}
 
 	void MainGui::renderNavBar()
 	{
-
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+		/*render menubar*/
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 10));
 		ImGui::BeginMenuBar();
-		
-		offsetNavItemLeft = 10;
-		offsetNavItemRight = 0;
-		navbarHeight = ImGui::GetFrameHeight();
 
+		/* get nav bar height*/
+		navbarHeight = ImGui::GetFrameHeight();
+		
+		/*render logo*/
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 8));
+		ImGui::ImageButton("logo", (ImTextureID)logo, ImVec2(26, 24));
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(3);
+		
+		/* double clicked to allow maxmize or restore window */
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && openglcore::Window::getInstance()->getWindowSpecification().isDoubleClicked)
+		{
+			resetWindowSizePos(switchIcon);
+		}
+
+		/* set menu items */
 		if (ImGui::BeginMenu("Files"))
 		{
+			if (ImGui::MenuItem("Open File			Ctrl+O"))
+			{
+				std::string filePath = utils::FileSystem::openFile("RenderX Scene File (*.rx)\0*.rx\0");
+				if (!filePath.empty())
+				{
+					utils::Serializer serializer(s_renderData->scene);
+					serializer.deSerialize(filePath);
+				}
+			}
 
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
+			if (ImGui::MenuItem("Save File			Ctrl+S"))
+			{
+				std::string filePath = utils::FileSystem::saveFile("RenderX Scene File (*.rx)\0*.rx\0");
+				if (!filePath.empty())
+				{
+					utils::Serializer serializer(s_renderData->scene);
+					serializer.serialize(filePath);
+				}
+			}
+
+			if (ImGui::MenuItem("EXIT				Alt+F4"))
+			{
+				std::string filePath = utils::FileSystem::openFolder();
+			}
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::EndMenu();
 		}
-		offsetNavItemLeft += ImGui::GetItemRectSize().x;
 
 
-
-		if (ImGui::BeginMenu("Options"))
+		if (ImGui::BeginMenu("View"))
 		{
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
+			for (auto& gui : guiStack)
+			{
+				ImGui::MenuItem(gui->getUiName().c_str(), nullptr, gui->getIsOpenPtr());
+			}
+
 			ImGui::EndMenu();
 		}
-		offsetNavItemLeft += ImGui::GetItemRectSize().x;
+
 
 		if (ImGui::BeginMenu("Settings"))
 		{
-			ImGui::MenuItem("EXIT				Alt+F4");
+			ImGui::MenuItem("Docking Space", nullptr, &fullscreen);
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::EndMenu();
 		}
-		offsetNavItemLeft += ImGui::GetItemRectSize().x;
+		
+		/* do offset for window control icons */
+		auto navBarWidth = ImGui::GetWindowSize().x;
+		auto offset = navBarWidth -  350;
+		ImGui::Dummy(ImVec2(offset, 0));
+
+		/* render window control icons */
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		
+		if (ImGui::ImageButton("minimize", (ImTextureID)minimizeIcon, ImVec2(26, 26)))
+		{
+			glfwIconifyWindow(openglcore::Window::getInstance()->getGLFWwinPtr());
+		}
+
+		auto tex = switchIcon == 1 ? maximizeIcon : restoreIcon;
+		if (ImGui::ImageButton("maximize or restore", (ImTextureID)tex, ImVec2(26, 26)))
+		{
+			resetWindowSizePos(switchIcon);
+		}
+
+		if (ImGui::ImageButton("close", (ImTextureID)closeIcon, ImVec2(26, 26)))
+		{
+			//TO DO
+		}
+
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(2);
 
 
 		ImGui::EndMenuBar();
 		ImGui::PopStyleVar();
 
-
-
 	}
+
+	void MainGui::resetWindowSizePos(int32_t& set)
+	{
+		if (set == 1)
+		{
+			windowSizeX = openglcore::Window::getInstance()->getWidth();
+			windowSizeY = openglcore::Window::getInstance()->getHeight();
+
+			glfwGetWindowPos(openglcore::Window::getInstance()->getGLFWwinPtr(), &windowPosX, &windowPosY);
+			RECT xy;
+			BOOL fResult = SystemParametersInfo(SPI_GETWORKAREA, 0, &xy, 0);
+			uint32_t width = xy.right - xy.left;
+			uint32_t height = xy.bottom - xy.top;
+
+			glfwSetWindowPos(openglcore::Window::getInstance()->getGLFWwinPtr(), 0, 0);
+			glfwSetWindowSize(openglcore::Window::getInstance()->getGLFWwinPtr(), width, height);
+		}
+		else
+		{
+			glfwSetWindowPos(openglcore::Window::getInstance()->getGLFWwinPtr(), windowPosX, windowPosY);
+			glfwSetWindowSize(openglcore::Window::getInstance()->getGLFWwinPtr(), windowSizeX, windowSizeY);
+
+		}
+
+		set *= -1;
+	}
+
 
 	void MainGui::renderAllGuis()
 	{
@@ -261,8 +388,6 @@ namespace engine::ui
 		
 		// Setup Dear ImGui style
 		uiStyle();
-		//ImGui::StyleColorsDark();
-		//ImGui::StyleColorsLight();
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForOpenGL(openglcore::Window::getInstance()->getGLFWwinPtr(), true);
@@ -331,7 +456,7 @@ namespace engine::ui
 		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-		style.GrabRounding = style.FrameRounding = 2.3f;
+		style.GrabRounding = style.FrameRounding = style.TabRounding = 0.0f;
 	}
 
 

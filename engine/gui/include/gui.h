@@ -7,6 +7,8 @@
 
 #include <config.h>
 
+#include "scene/render_scene.h"
+
 namespace engine::ui
 {
 	class Gui
@@ -17,12 +19,16 @@ namespace engine::ui
 		Gui& operator=(const Gui& other) = delete;
 		virtual ~Gui();
 		
-		virtual void render() = 0;
-		virtual std::string getUiName() const;
-
+		virtual void render();
+		std::string getUiName() const;
+		bool* getIsOpenPtr();
 		
+		void set(std::shared_ptr<scene::RenderData> renderData);
 	protected:
 		std::string uiName;
+		bool isOpen;
+
+		static std::shared_ptr<scene::RenderData> s_renderData;
 	};
 }
 

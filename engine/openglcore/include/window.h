@@ -1,5 +1,10 @@
 #pragma once
-#include "thirdparty_header.h"
+#include <glad/glad.h>
+#include <glfw/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "event/mouse_event.h"
 #include "event/keyboard_event.h"
@@ -11,6 +16,12 @@ namespace engine::openglcore
 	{
 		uint32_t width;
 		uint32_t height;
+
+		uint32_t framebufferWidth;
+		uint32_t framebufferHeight;
+
+		bool isFramebufferSizeChange = false;
+
 		std::string title;
 
 		int32_t windowXPos = 0;
@@ -21,6 +32,7 @@ namespace engine::openglcore
 		
 
 		bool canMove = false;
+		bool isDoubleClicked = false;
 
 		GLFWwindow* openglWinPtr;
 
@@ -60,6 +72,8 @@ namespace engine::openglcore
 		void setWindowSize();
 		void setWindowPos();
 
+		WindowSpecification getWindowSpecification() const;
+		WindowSpecification& getWindowSpecificationRef();
 	private:
 
 		Window();

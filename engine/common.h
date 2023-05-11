@@ -13,6 +13,11 @@
 #include <stack>
 #include <tuple>
 #include <functional>
+#include <chrono>
+#include <ppl.h>
+#include <random>
+#include <cstdint>
+#include <atomic>
 
 #define WINDOW_DEFAULT_WIDTH 1600
 #define WINDOW_DEFAULT_HEIGHT 900

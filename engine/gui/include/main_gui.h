@@ -1,10 +1,9 @@
 #pragma once
-#include "include/scene_gui.h"
-#include "include/viewport_gui.h"
+#include "gui.h"
 
 namespace engine::ui
 {
-	class MainGui
+	class MainGui : public Gui
 	{
 	public:
 		static std::shared_ptr<MainGui> getInstance();
@@ -15,9 +14,6 @@ namespace engine::ui
 		
 		static void uiFreeResource();
 
-		static int32_t getMainUiPosX();
-		static int32_t getMainUiPosY();
-
 		static uint32_t getMainUiWidth();
 		static uint32_t getMainUiHeight();
 
@@ -27,27 +23,28 @@ namespace engine::ui
 		static uint32_t getOffsetNavItemRight();
 
 		static uint32_t getNavbarHeight();
-
 		static bool isFullScreen();
 
+		void setRenderData(std::shared_ptr<scene::RenderData> renderData);
 
 	private:
 
 		MainGui();
 		void uiSetup();
 		void renderMainGui();
+		void renderNavBar();
+		void resetWindowSizePos(int32_t& set);
 
-		static std::shared_ptr<MainGui> s_instance;
 		static void uiStyle();
-
-		static bool p_open;
-		static bool fullscreen;
-
 		
 	private:
-		void renderNavBar();
 
 		std::string uiName;
+
+		static bool isOpen;
+		static bool fullscreen;
+
+		static std::shared_ptr<MainGui> s_instance;
 
 		static int32_t mainUiPosX;
 		static int32_t mainUiPosY;
@@ -60,11 +57,20 @@ namespace engine::ui
 
 		static uint32_t navbarHeight;
 
-		static bool showViewportGui;
-		static bool showSceneGui;
+		std::vector<std::shared_ptr<Gui>> guiStack;
 
-		std::shared_ptr<SceneGui> sceneGui;
-		std::shared_ptr<ViewportGui> viewport;
+		uint32_t minimizeIcon;
+		uint32_t maximizeIcon;
+		uint32_t closeIcon;
+		uint32_t restoreIcon;
+		uint32_t logo;
 
+		int32_t switchIcon;
+
+		int32_t windowSizeX;
+		int32_t windowSizeY;
+
+		int32_t windowPosX;
+		int32_t windowPosY;
 	};
 }

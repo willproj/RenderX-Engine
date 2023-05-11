@@ -1,6 +1,11 @@
 #pragma once
-#include "thirdparty_header.h"
+#include <common.h>
+#include <glad/glad.h>
+#include <glfw/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace engine::openglcore
 {
@@ -15,6 +20,7 @@ namespace engine::openglcore
 
 		void SetBool(const std::string& name, bool value) const;
 		void SetInt(const std::string& name, int value) const;
+		void SetUint(const std::string& name, uint32_t value) const;
 		void SetFloat(const std::string& name, float value) const;
 		void SetVec2(const std::string& name, const glm::vec2& value) const;
 		void SetVec2(const std::string& name, float x, float y) const;

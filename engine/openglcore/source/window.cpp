@@ -3,11 +3,12 @@
 #include "input/mouse.h"
 
 #include "stb/stb_image.h"
+#include "utils/filesystem.h"
+
+#include <chrono>
 
 namespace engine::openglcore
 {
-
-
 
 	std::shared_ptr<Window> Window::s_Instance;
 
@@ -55,12 +56,15 @@ namespace engine::openglcore
 		{
 			return false;
 		}
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		//glfwWindowHint(GLFW_FLOATING, GLFW_FALSE);
-		//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-		//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+		glfwWindowHint(GLFW_FLOATING, GLFW_FALSE);
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+		glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+
+		glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+
 		//glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 
@@ -82,8 +86,8 @@ namespace engine::openglcore
 		ui::MainGui::setMainUiPos(winSpeci.windowXPos, winSpeci.windowYPos);
 
 		GLFWimage images[1];
-		std::string path = ROOT_DIR;
-		path += "/assets/logo/renderx.png";
+		
+		std::string path = utils::FileSystem::getRootPath()+"/assets/icon/renderx.png";
 		images[0].pixels = stbi_load(path.c_str(), &images[0].width, &images[0].height, 0, 4); //rgba channels 
 		glfwSetWindowIcon(winSpeci.openglWinPtr, 1, images);
 		stbi_image_free(images[0].pixels);
@@ -95,7 +99,17 @@ namespace engine::openglcore
 			event::MouseMovementEvent event((float)xPos, (float)yPos);
 			winSpeci.onEvent(event);
 			
-			if (input::Mouse::getInstance()->isLeftButtonPressed()) {
+			uint32_t navBarOffsetLeft = ui::MainGui::getOffsetNavItemLeft();
+			uint32_t navBarOffsetRight = ui::MainGui::getOffsetNavItemRight();
+			uint32_t navBarHeight = ui::MainGui::getNavbarHeight();
+
+			int32_t leftSide = navBarOffsetLeft;
+			int32_t rightSide = winSpeci.width - navBarOffsetRight;
+			int32_t topSide = 0;
+			int32_t bottomSide = navBarHeight;
+			auto currMousePos = input::Mouse::getInstance()->getMouseCurrentPosition();
+
+			if (input::Mouse::getInstance()->isLeftButtonPressed() && winSpeci.canMove) {
 				auto cur = input::Mouse::getInstance()->getCursorPosRelativeToWindow();
 				winSpeci.cursorOffsetX = xPos - cur.x;
 				winSpeci.cursorOffsetY = yPos - cur.y;
@@ -155,7 +169,6 @@ namespace engine::openglcore
 
 			auto currMousePos = input::Mouse::getInstance()->getMouseCurrentPosition();
 
-
 			switch (action)
 			{
 			case GLFW_PRESS:
@@ -169,7 +182,24 @@ namespace engine::openglcore
 
 				if (currMousePos.x > leftSide && currMousePos.x <rightSide && currMousePos.y >topSide && currMousePos.y < bottomSide)
 				{
-					winSpeci.canMove = true;
+
+					static auto before = std::chrono::system_clock::now();
+					auto now = std::chrono::system_clock::now();
+					double diff_ms = std::chrono::duration <double, std::milli>(now - before).count();
+					before = now;
+					if (diff_ms > 10 && diff_ms < 300) {
+						//action = GLFW_DOUBLECLICK;
+						// mDebug() << "doubleclick";
+						std::cout << "double clicked" << std::endl;
+						winSpeci.isDoubleClicked = true;
+
+					}
+					else
+					{
+						winSpeci.canMove = true;
+					}
+
+
 				}
 				break;
 			}
@@ -178,12 +208,14 @@ namespace engine::openglcore
 			{
 				event::MouseReleasedEvent event(button);
 				winSpeci.onEvent(event);
-				
+
 				if (currMousePos.x > leftSide && currMousePos.x <rightSide && currMousePos.y >topSide && currMousePos.y < bottomSide)
 				{
 					winSpeci.canMove = false;
-				}
+					winSpeci.isDoubleClicked = false;
 
+
+				}
 				break;
 			}
 			}
@@ -198,6 +230,16 @@ namespace engine::openglcore
 
 		glfwMakeContextCurrent(winSpeci.openglWinPtr);
 
+
+		glfwSetFramebufferSizeCallback(winSpeci.openglWinPtr, [](GLFWwindow* window, int width, int height) 
+		{
+			auto& data = *static_cast<WindowSpecification*>(glfwGetWindowUserPointer(window));
+			data.framebufferWidth = width;
+			data.framebufferHeight = height;
+			glViewport(0, 0, width, height);
+		});
+
+
 		// glad: load all OpenGL function pointers
 		// ---------------------------------------
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -205,6 +247,10 @@ namespace engine::openglcore
 			std::cout << "Failed to initialize GLAD" << std::endl;
 			return false;
 		}
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		return true;
 	}
@@ -217,7 +263,7 @@ namespace engine::openglcore
 	void Window::clear()
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		setWindowSize();
 		setWindowPos();
@@ -236,6 +282,11 @@ namespace engine::openglcore
 			winSpeci.width = ui::MainGui::getMainUiWidth();
 			winSpeci.height = ui::MainGui::getMainUiHeight();
 			glfwSetWindowSize(winSpeci.openglWinPtr, winSpeci.width, winSpeci.height);
+			winSpeci.isFramebufferSizeChange = true;
+		}
+		else
+		{
+			winSpeci.isFramebufferSizeChange = false;
 		}
 	}
 
@@ -248,8 +299,17 @@ namespace engine::openglcore
 			glfwSetWindowPos(winSpeci.openglWinPtr, winSpeci.windowXPos + winSpeci.cursorOffsetX, winSpeci.windowYPos + winSpeci.cursorOffsetY);
 			winSpeci.cursorOffsetX = 0;
 			winSpeci.cursorOffsetY = 0;
-		
 		}
+	}
+
+	WindowSpecification Window::getWindowSpecification() const
+	{
+		return winSpeci;
+	}
+
+	WindowSpecification& Window::getWindowSpecificationRef()
+	{
+		return winSpeci;
 	}
 
 	void Window::destroyWindow()

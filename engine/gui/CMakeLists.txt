@@ -18,8 +18,11 @@ target_include_directories(gui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/imgui
 	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/imgui/backends
 	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/glad/include
+	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/entt/include
+	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/ImGuizmo
+	PUBLIC ${CMAKE_SOURCE_DIR}/thirdParty/glm
 )
 
-target_link_libraries(gui PRIVATE imgui openglCore)
+target_link_libraries(gui PRIVATE imgui openglCore scene glm entt renderer ImGuizmo)
 
 set_target_properties(gui PROPERTIES FOLDER "engine")

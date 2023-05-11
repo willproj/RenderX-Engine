@@ -1,0 +1,44 @@
+Scene: unknow
+Entities:
+  - UUID Component:
+      Entity UUID: 2311192578
+    Label Component:
+      Label: rock
+    Transform Component:
+      Translation: [3.41949463, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\RenderX-Engine\assets\objects\rock\rock.obj
+    Material Component:
+      Color: [0.529982805, 0.0498220921, 1]
+      Roughness: 0.352999985
+      Metallic: 0
+  - UUID Component:
+      Entity UUID: 1906311169
+    Label Component:
+      Label: sphere
+    Transform Component:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\RenderX-Engine\assets\objects\sphere\sphere.fbx
+    Material Component:
+      Color: [1, 0, 0]
+      Roughness: 0
+      Metallic: 0
+  - UUID Component:
+      Entity UUID: 1487667200
+    Label Component:
+      Label: cube
+    Transform Component:
+      Translation: [-2.90991211, 0.684295654, -0.348571688]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\RenderX-Engine\assets\objects\cube\cube.fbx
+    Material Component:
+      Color: [0, 0.177935839, 1]
+      Roughness: 0.588999987
+      Metallic: 0.264999986

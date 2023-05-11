@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.5)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -20,19 +20,29 @@ include(global_settings)
 configure_file(${CMAKE_SOURCE_DIR}/config/config.h.in ${CMAKE_SOURCE_DIR}/config/config.h)
 
 
+
+
 # Include dependenciees
 add_subdirectory("thirdParty/glfw")
 add_subdirectory("thirdParty/glad")
 add_subdirectory("thirdParty/glm")
 add_subdirectory("thirdParty/stb")
-add_subdirectory("thirdParty/assimp")
 add_subdirectory("thirdParty/imgui")
 add_subdirectory("thirdParty/spdlog")
+add_subdirectory("thirdParty/entt")
+add_subdirectory("thirdParty/assimp")
+add_subdirectory("thirdParty/ImGuizmo")
+add_subdirectory("thirdParty/yaml-cpp")
+
+
 add_subdirectory("engine/gui")
 add_subdirectory("engine/event")
 add_subdirectory("engine/input")
+add_subdirectory("engine/utils")
 add_subdirectory("engine/log")
 add_subdirectory("engine/openglCore")
+add_subdirectory("engine/renderer")
+add_subdirectory("engine/scene")
 add_subdirectory ("engine")
 
 set_target_properties(glfw PROPERTIES FOLDER "thirdParty")
@@ -40,12 +50,18 @@ set_target_properties(glad PROPERTIES FOLDER "thirdParty")
 set_target_properties(glm PROPERTIES FOLDER "thirdParty")
 set_target_properties(stb PROPERTIES FOLDER "thirdParty")
 set_target_properties(assimp PROPERTIES FOLDER "thirdParty")
+set_target_properties(ImGuizmo PROPERTIES FOLDER "thirdParty")
+set_target_properties(yaml-cpp PROPERTIES FOLDER "thirdParty")
 set_target_properties(imgui PROPERTIES FOLDER "thirdParty")
 set_target_properties(spdlog PROPERTIES FOLDER "thirdParty")
+set_target_properties(entt PROPERTIES FOLDER "thirdParty")
 set_target_properties(uninstall PROPERTIES FOLDER "thirdParty")
 set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "thirdParty")
 set_target_properties(update_mappings PROPERTIES FOLDER "thirdParty")
 set_target_properties(zlibstatic PROPERTIES FOLDER "thirdParty")
+
+
+
 
 
 

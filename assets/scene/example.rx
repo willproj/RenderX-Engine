@@ -1,0 +1,11 @@
+Scene: unknow
+Entities:
+  - Entity: 12123
+    Label Component:
+      Label: entity
+    Transform Component:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:/github/RenderX-Engine/assets/objects/sphere/sphere.fbx

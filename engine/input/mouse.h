@@ -8,8 +8,8 @@ namespace engine::input
 	enum MouseButtonType
 	{
 		RX_LEFT_BUTTON,
-		RX_MIDDLE_BUTTON,
-		RX_RIGHT_BUTTON
+		RX_RIGHT_BUTTON,
+		RX_MIDDLE_BUTTON
 	};
 
 	class Mouse
@@ -28,9 +28,9 @@ namespace engine::input
 		bool isRightButtonReleased() const;
 
 
-		glm::vec2 getMouseLastPosiion() const;
-		glm::vec2 getMouseCurrentPosition() const;
-		glm::vec2 getMouseScrollOffset()const;
+		const glm::vec2& getMouseLastPosiion() const;
+		const glm::vec2& getMouseCurrentPosition() const;
+		const glm::vec2& getMouseScrollOffset()const;
 
 		void setMouseLastPosition(const glm::vec2& lastPosition);
 		void setMouseCurrentPosition(const glm::vec2& currentPosition);
@@ -39,7 +39,7 @@ namespace engine::input
 		float getScrollSensitivity() const;
 		float getMouseSensitivity() const;
 
-		glm::vec2 getMousePositionOffset()const;
+		const glm::vec2& getMousePositionOffset()const;
 
 
 		void onEvent(event::MouseMovementEvent& event);

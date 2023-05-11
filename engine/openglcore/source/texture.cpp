@@ -3,26 +3,18 @@
 
 namespace engine::openglcore
 {
-	Texture::Texture(const std::string& path)
-        :texture(0)
-	{
-        loadTexture(path);
-	}
 
-	Texture::~Texture()
-	{
-
-	}
-
-    void Texture::useTexture(uint32_t index) const
+    void TextureUtils::useTexture(uint32_t index, uint32_t texture)
     {
         glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(GL_TEXTURE_2D, texture);
     }
 
-	void Texture::loadTexture(const std::string& path)
+	uint32_t TextureUtils::loadTexture(const std::string& path)
 	{
+        uint32_t texture = 0;
         glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         int width, height, nrComponents;
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
@@ -53,6 +45,7 @@ namespace engine::openglcore
             stbi_image_free(data);
         }
 
+        return texture;
 	}
 
 

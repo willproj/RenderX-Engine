@@ -12,9 +12,6 @@ file(GLOB_RECURSE HEADER_FILES_EXE
 
 add_library (openglCore ${HEADER_FILES_EXE} ${SOURCE_FILES_EXE})
 
-target_include_directories(openglCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-	PUBLIC ${CMAKE_SOURCE_DIR}/engine)
-
 
 target_include_directories(openglCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 	PUBLIC ${CMAKE_SOURCE_DIR}/engine

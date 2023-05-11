@@ -21,7 +21,7 @@ namespace engine::input
 		scrollOffset(glm::vec2(0.0f)),
 		leftButton(false),
 		midButton(false),
-		rightButton(false)	
+		rightButton(false)
 	{
 
 	}
@@ -47,7 +47,6 @@ namespace engine::input
 		return rightButton == true;
 	}
 
-
 	bool Mouse::isLeftButtonReleased() const
 	{
 		return leftButton == false;
@@ -62,19 +61,18 @@ namespace engine::input
 	{
 		return rightButton == false;
 	}
-	
 
-	glm::vec2 Mouse::getMouseLastPosiion() const
+	const glm::vec2& Mouse::getMouseLastPosiion() const
 	{
 		return lastPosition;
 	}
 
-	glm::vec2 Mouse::getMouseCurrentPosition() const
+	const glm::vec2& Mouse::getMouseCurrentPosition() const
 	{
 		return currentPosition;
 	}
 
-	glm::vec2 Mouse::getMouseScrollOffset()const
+	const glm::vec2& Mouse::getMouseScrollOffset()const
 	{
 		return scrollOffset;
 	}
@@ -104,7 +102,7 @@ namespace engine::input
 		return mouseSensitivity;
 	}
 
-	glm::vec2 Mouse::getMousePositionOffset() const
+	const glm::vec2& Mouse::getMousePositionOffset() const
 	{
 		return currentPosition - lastPosition;
 	}

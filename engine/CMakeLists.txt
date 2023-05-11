@@ -5,7 +5,7 @@ project(common)
 
 add_library(common common.h common.cpp)
 
-add_subdirectory("renderxApp")
+add_subdirectory("application")
 
 set_target_properties(common PROPERTIES FOLDER "engine")
 

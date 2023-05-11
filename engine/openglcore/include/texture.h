@@ -5,26 +5,26 @@
 
 namespace engine::openglcore
 {
-	enum TextureType
+	enum class TextureType
 	{
 		DIFFUSE_TEXTURE,
 		SPECULAR_TEXTURE,
 		NORMAL_TEXTURE,
-		HEIGHT_TEXTURE
+		HEIGHT_TEXTURE,
+		AO_TEXTURE
 	};
 
-	class Texture
+	struct Texture
 	{
-	public:
-		Texture(const std::string& path);
-		~Texture();
-		void loadTexture(const std::string& path);
-
-		void useTexture(uint32_t index) const;
-
-	private:
 		uint32_t texture;
 		TextureType type;
+	};
 
+	class TextureUtils
+	{
+	public:
+		static uint32_t loadTexture(const std::string& path);
+		static void useTexture(uint32_t index, uint32_t texture);
+	private:
 	};
 }
